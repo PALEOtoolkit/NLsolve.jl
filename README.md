@@ -307,6 +307,14 @@ By default, no linesearch is performed.
 **Note:** it is assumed that a passed linesearch function will at least update the solution
 vector and evaluate the function at the new point.
 
+Added in PALEOtoolkit fork: 
+- if `method = :newton` and `linesearch=LineSearches.Static()` (the default), an additional argument
+  `apply_step!` (default value `(x, x_old, newton_step)->(x .= x_old .+ newton_step)`) can be used to define a function to modify the proposed new
+  `x` value after the Newton iteration. eg `apply_step! = (x, x_old, newton_step)->(x .= x_old .+ newton_step; x .= max.(x, 1e-80))` will enforce a constraint
+  `x[i] >= 1e-80`.
+- if `method = :newton`, an additional argument `check_x` (default values `(x) -> true`) can be used to define a function
+  to test whether state `x` is valid, as an additional requirement for a solution to be considered to have converged. 
+
 ## Anderson acceleration
 
 This method is selected with `method = :anderson`.

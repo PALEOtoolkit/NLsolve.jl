@@ -42,6 +42,8 @@ function newton_(df::OnceDifferentiable,
                  extended_trace::Bool,
                  linesearch,
                  linsolve,
+                 apply_step!,
+                 check_x,
                  cache = NewtonCache(df)) where T
     n = length(initial_x)
     copyto!(cache.x, initial_x)
@@ -110,7 +112,8 @@ function newton_(df::OnceDifferentiable,
 
 
         if linesearch isa Static
-            x_ls .= cache.x .+ cache.p
+            # x_ls .= cache.x .+ cache.p
+            apply_step!(x_ls, cache.x, cache.p)
             value_jacobian!(df, x_ls)
             alpha, ϕalpha = one(real(T)), value(dfo)
         else
@@ -142,6 +145,8 @@ function newton(df::OnceDifferentiable,
                 extended_trace::Bool,
                 linesearch,
                 cache = NewtonCache(df);
-                linsolve=(x, A, b) -> copyto!(x, A\b)) where T
-    newton_(df, initial_x, convert(real(T), xtol), convert(real(T), ftol), iterations, store_trace, show_trace, extended_trace, linesearch, linsolve, cache)
+                linsolve=(x, A, b) -> copyto!(x, A\b),
+                apply_step! = (x, x_old, newton_step)->(x .= x_old .+ newton_step),
+                check_x = (x) -> true) where T
+    newton_(df, initial_x, convert(real(T), xtol), convert(real(T), ftol), iterations, store_trace, show_trace, extended_trace, linesearch, linsolve, apply_step!, check_x, cache)
 end
